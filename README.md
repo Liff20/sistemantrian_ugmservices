@@ -1,4 +1,4 @@
-# Sistem Antrian Humas — UGM Super App
+# Sistem Antrian Humas — Sistem Antrian Layanan UGM (UGM Services)
 
 Sistem antrian digital untuk bagian Humas (Hubungan Masyarakat). Pengguna dapat mengambil nomor antrian melalui website, petugas memanggil melalui dashboard operator, dan nomor muncul di layar TV/monitor secara real-time. Semua loket dapat melayani seluruh jenis layanan.
 
