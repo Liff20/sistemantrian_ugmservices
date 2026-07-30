@@ -1,6 +1,6 @@
 # Sistem Antrian Humas — Sistem Antrian Layanan UGM (UGM Services)
 
-Sistem antrian digital untuk bagian Humas (Hubungan Masyarakat). Pengguna dapat mengambil nomor antrian melalui website, petugas memanggil melalui dashboard operator, dan nomor muncul di layar TV/monitor secara real-time. Semua loket dapat melayani seluruh jenis layanan.
+Sistem antrian digital untuk Unit Layanan Terpadu UGM. Pengguna dapat mengambil nomor antrian melalui website, petugas memanggil melalui dashboard operator, dan nomor muncul di layar TV/monitor secara real-time. Semua loket dapat melayani seluruh jenis layanan.
 
 ## Fitur
 
@@ -9,7 +9,9 @@ Sistem antrian digital untuk bagian Humas (Hubungan Masyarakat). Pengguna dapat 
 - **TV Display** — Tampilan monitor real-time dengan nomor yang dipanggil dan daftar antrian
 - **Real-time** — Update langsung menggunakan Laravel Reverb WebSocket
 - **Sound Notification** — Suara otomatis saat nomor dipanggil (via browser)
-- **Panel Admin** — Reset sistem, statistik per layanan, monitoring antrian
+- **Panel Admin** — Reset sistem, statistik per layanan, download rekap harian (CSV), monitoring antrian
+- **Background Kustom** — Tampilan halaman dengan background image dan opacity yang dapat disesuaikan
+- **Logo UGM** — Header menggunakan logo UGM putih
 
 ## Persyaratan
 
@@ -105,7 +107,7 @@ php artisan reverb:start --host=0.0.0.0 --port=8080
 | Operator Loket 1 | `http://localhost:8000/operator/1` | Dashboard petugas loket 1 |
 | Operator Loket 2 | `http://localhost:8000/operator/2` | Dashboard petugas loket 2 |
 | TV Display | `http://localhost:8000/tv` | Tampilan monitor/LED |
-| Admin Panel | `http://localhost:8000/admin` | Reset sistem & statistik |
+| Admin Panel | `http://localhost:8000/admin` | Reset sistem, statistik, download rekap harian |
 
 ## Alur Kerja
 
@@ -115,10 +117,11 @@ php artisan reverb:start --host=0.0.0.0 --port=8080
 4. **Petugas** klik **"Mulai Layanan"** → status berubah menjadi "Sedang Dilayani"
 5. **Petugas** klik **"Selesai"** → antrian selesai, siap memanggil nomor berikutnya
 6. **Semua loket** dapat memanggil nomor dari layanan **Pengaduan (A), Permohonan Informasi (B), Konsultasi (C)** manapun
+7. **Admin** dapat mendownload rekap harian dalam format CSV (dapat dibuka di Excel) dari panel admin
 
 ## Struktur Database
 
-- **services** — Jenis layanan (Pendaftaran, Pengaduan, Informasi, Konsultasi)
+- **services** — Jenis layanan (Pengaduan, Permohonan Informasi, Konsultasi)
 - **counters** — Loket/petugas (universal — semua loket melayani semua layanan)
 - **queues** — Data antrian (nomor, status, waktu, layanan, loket)
 - **queue_logs** — Riwayat aksi pada antrian
@@ -157,7 +160,7 @@ php artisan reverb:start --host=0.0.0.0 --port=8080
 | Secondary Hover | `#F4C400` | Hover Accent |
 | Success | `#16A34A` | Status berhasil |
 | Warning | `#F59E0B` | Peringatan |
-| Error | `#DC2626` | Error |
+| Danger | `#DC2626` | Tombol reset, peringatan bahaya |
 | Info | `#0284C7` | Informasi |
 | Background | `#F8FAFC` | Halaman |
 | Surface | `#FFFFFF` | Card |
@@ -165,6 +168,36 @@ php artisan reverb:start --host=0.0.0.0 --port=8080
 | Text Primary | `#1F2937` | Judul |
 | Text Secondary | `#6B7280` | Deskripsi |
 
+## Kustomisasi Tampilan
+
+### Background Image
+
+Letakkan file gambar di `public/images/background.png`. Opacity overlay dapat diatur di `resources/views/layouts/app.blade.php`:
+
+```blade
+{{-- Ubah bg-white/70 untuk mengatur opacity overlay (70% putih) --}}
+<div class="fixed inset-0 bg-cover bg-center" style="background-image: url('/images/background.png')">
+    <div class="absolute inset-0 bg-white/70"></div>
+</div>
+```
+
+### Logo UGM
+
+Logo UGM putih disimpan di `public/images/logo_ugm_putih.png`. Untuk mengganti, cukup replace file tersebut.
+
+### Tombol Layanan
+
+Tombol layanan di halaman ambil antrian menggunakan ukuran besar (p-8, min-h-[180px]) dengan ikon prefix persegi. Ukuran container dapat diubah di `resources/views/livewire/queue-registration.blade.php`.
+
+## Download Rekap Harian (CSV)
+
+Admin dapat mendownload rekap harian dari panel admin (`/admin`). File CSV mencakup:
+
+- **Data Antrian**: Nomor antrian, layanan, status, waktu, loket
+- **Riwayat Aktivitas**: Log aksi (ambil, panggil, layani, selesai, skip) dengan timestamp
+
+CSV menggunakan BOM (Byte Order Mark) sehingga kompatibel dengan Microsoft Excel dan dapat menampilkan huruf Indonesia (seperti é, ü) dengan benar.
+
 ## Lisensi
 
-Hak Cipta © 2024 UGM Super App
+Hak Cipta © 2025 UGM University Service — Sistem Antrian Layanan
