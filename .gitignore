@@ -6,3 +6,12 @@ database/database.sqlite
 .DS_Store
 Thumbs.db
 *.log
+
+# Laravel compiled view cache
+/storage/framework/views/*.php
+
+# Vite dev server hot file
+/public/hot
+
+# Video files (too large for Git)
+/public/videos/

@@ -1,4 +1,4 @@
-<div class="max-w-4xl mx-auto">
+<div class="max-w-4xl mx-auto" wire:poll.2s>
     <!-- Header -->
     <div class="text-center mb-8">
         <div class="inline-flex items-center justify-center w-20 h-20 bg-primary-light rounded-full mb-4">

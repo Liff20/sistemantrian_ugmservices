@@ -10,11 +10,30 @@
         body {
             background: linear-gradient(135deg, #0B457F 0%, #083764 100%);
             overflow: hidden;
+            margin: 0;
+            width: 100vw;
+            height: 100vh;
         }
-        .tv-container {
+        /* Fixed FHD (1920x1080) canvas, scaled to fit any screen */
+        .tv-stage {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
             height: 100vh;
             display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .tv-container {
+            width: 1920px;
+            height: 1080px;
+            flex-shrink: 0;
+            transform-origin: center center;
+            display: flex;
             flex-direction: column;
+            background: linear-gradient(135deg, #0B457F 0%, #083764 100%);
         }
         @keyframes pulse-glow {
             0%, 100% { box-shadow: 0 0 20px rgba(255, 212, 43, 0.3); }
@@ -32,8 +51,30 @@
         }
     </style>
 </head>
-<body class="tv-container">
-    {{ $slot }}
+<body>
+    <div class="tv-stage" id="tv-stage">
+        <div class="tv-container" id="tv-container">
+            {{ $slot }}
+        </div>
+    </div>
+
+    <script>
+        // Scale the fixed 1920x1080 canvas to fit the current screen
+        function fitTvToScreen() {
+            const stage = document.getElementById('tv-stage');
+            const container = document.getElementById('tv-container');
+            if (!stage || !container) return;
+            const scale = Math.min(
+                window.innerWidth / 1920,
+                window.innerHeight / 1080
+            );
+            container.style.transform = 'scale(' + scale + ')';
+        }
+        window.addEventListener('resize', fitTvToScreen);
+        window.addEventListener('load', fitTvToScreen);
+        document.addEventListener('DOMContentLoaded', fitTvToScreen);
+        fitTvToScreen();
+    </script>
 
     @livewireScripts
     @stack('scripts')
