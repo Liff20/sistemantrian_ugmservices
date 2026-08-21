@@ -7,11 +7,26 @@ database/database.sqlite
 Thumbs.db
 *.log
 
-# Laravel compiled view cache
-/storage/framework/views/*.php
-
 # Vite dev server hot file
 /public/hot
 
 # Video files (too large for Git)
 /public/videos/
+
+# Laravel runtime & cache
+/bootstrap/cache/*
+!/bootstrap/cache/.gitignore
+/storage/framework/cache/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+/storage/framework/testing/*
+/storage/logs/*
+/storage/app/*.key
+/storage/app/private/*
+/storage/app/public/*
+!/storage/framework/cache/.gitignore
+!/storage/framework/sessions/.gitignore
+!/storage/framework/views/.gitignore
+!/storage/logs/.gitignore
+!/storage/app/private/.gitignore
+!/storage/app/public/.gitignore

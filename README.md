@@ -1,203 +1,343 @@
-# Sistem Antrian Humas — Sistem Antrian Layanan UGM (UGM Services)
+# Sistem Antrian Humas UGM Services
 
-Sistem antrian digital untuk Unit Layanan Terpadu UGM. Pengguna dapat mengambil nomor antrian melalui website, petugas memanggil melalui dashboard operator, dan nomor muncul di layar TV/monitor secara real-time. Semua loket dapat melayani seluruh jenis layanan.
+Sistem antrian digital untuk Unit Layanan Terpadu UGM. Pengunjung mengambil nomor antrian melalui halaman web, petugas memanggil dan melayani antrian melalui dashboard operator, sedangkan nomor yang sedang dipanggil ditampilkan pada TV atau monitor secara real-time.
+
+Semua loket dapat melayani semua jenis layanan. Jenis layanan bawaan aplikasi adalah Pengaduan, Permohonan Informasi, dan Konsultasi.
 
 ## Fitur
 
-- **Ambil Antrian** — Pengguna memilih layanan (Pengaduan, Permohonan Informasi, Konsultasi) dan mendapatkan nomor antrian
-- **Dashboard Operator** — Petugas memanggil, melayani, dan menyelesaikan antrian. Semua loket melayani semua layanan
-- **TV Display** — Tampilan monitor real-time dengan nomor yang dipanggil dan daftar antrian
-- **Real-time** — Update langsung menggunakan Laravel Reverb WebSocket
-- **Sound Notification** — Suara otomatis saat nomor dipanggil (via browser)
-- **Panel Admin** — Reset sistem, statistik per layanan, download rekap harian (CSV), monitoring antrian
-- **Background Kustom** — Tampilan halaman dengan background image dan opacity yang dapat disesuaikan
-- **Logo UGM** — Header menggunakan logo UGM putih
+- Pengunjung mengambil nomor antrian berdasarkan jenis layanan.
+- Setiap jenis layanan memiliki prefix nomor sendiri: A, B, dan C.
+- Operator dapat memanggil, memulai layanan, menyelesaikan, atau melewati antrian.
+- Semua loket dapat memanggil antrian dari semua layanan.
+- TV display menampilkan nomor yang sedang dipanggil, loket, dan daftar antrian.
+- Pembaruan antarklien menggunakan Laravel Reverb WebSocket.
+- Browser dapat membacakan nomor antrian melalui notifikasi suara.
+- Admin dapat memantau statistik, mereset data operasional, dan mengunduh rekap CSV.
+- Background halaman dan logo dapat dikustomisasi melalui folder `public/images`.
 
 ## Persyaratan
 
-- PHP 8.2+
+- PHP 8.2 atau lebih baru
 - Composer
-- Node.js 18+
-- NPM
+- Node.js 18 atau lebih baru dan NPM
+- Ekstensi PHP SQLite dan PDO SQLite aktif
+- Windows PowerShell, Command Prompt, atau terminal Laragon
 
-## Instalasi PHP & Composer (Windows)
+## Instalasi di Windows
 
-### Opsi 1: Laragon (Rekomendasi)
+### 1. Siapkan PHP dan Composer
 
-[Download Laragon](https://laragon.org/download/) → Install → Selesai. Laragon sudah include PHP, Composer, MySQL, Nginx, dan semuanya terkonfigurasi otomatis.
+Cara paling mudah adalah menggunakan [Laragon](https://laragon.org/download/). Setelah Laragon terpasang:
 
-Setelah install Laragon:
-1. Buka **Laragon** → klik **Start All**
-2. Buka terminal Laragon: **Menu → Terminal**
-3. Lanjut ke tahap **Instalasi Aplikasi** di bawah
+1. Buka Laragon dan pilih **Start All**, atau buka terminal Laragon.
+2. Pastikan PHP dan Composer tersedia:
 
-### Opsi 2: Manual
+```powershell
+php -v
+composer --version
+```
 
-1. **Download PHP 8.2+** dari https://windows.php.net/download/
-   - Pilih file `php-8.2.x-nts-Win32-vs16-x64.zip`
-   - Extract ke `C:\php`
-   - Tambahkan `C:\php` ke **Environment Variables > PATH**
+Jika `php` tidak dikenali dan PHP Laragon berada di lokasi standar, tambahkan folder berikut ke **Environment Variables > Path**:
 
-2. **Download Composer** dari https://getcomposer.org/download/
-   - Jalankan `Composer-Setup.exe`
-   - Saat instalasi, arahkan ke folder PHP (`C:\php`)
+```text
+C:\laragon\bin\php\php-8.3.30-Win32-vs16-x64
+```
 
-3. Verifikasi instalasi:
-   ```cmd
-   php -v
-   composer --version
-   ```
+Versi folder PHP dapat berbeda. Gunakan folder yang berisi file `php.exe`.
 
-## Instalasi Aplikasi
+Jika Composer Laragon tidak dikenali, tambahkan folder berikut ke `Path`:
 
-```bash
-# Pindah ke folder project
-cd "d:\AI & Plugin Experiment\sistem_antrian_humas"
+```text
+C:\laragon\bin\composer
+```
 
-# Install PHP dependencies
+Tutup dan buka kembali terminal setelah mengubah `Path`.
+
+### 2. Masuk ke folder proyek
+
+Gunakan path proyek yang benar:
+
+```powershell
+cd "D:\Prototype System\sistemantrian_ugmservices"
+```
+
+### 3. Pasang dependensi PHP dan JavaScript
+
+```powershell
 composer install
-
-# Install JavaScript dependencies
 npm install
+```
 
-# Copy environment file
-copy .env.example .env
+Perintah `composer install` membuat folder `vendor`, sedangkan `npm install` membuat folder `node_modules`.
 
-# Generate application key
+### 4. Buat file konfigurasi environment
+
+Salin `.env.example` menjadi `.env`:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Jika `.env` sudah ada, jangan menyalinnya lagi karena konfigurasi lokal dapat tertimpa.
+
+Generate application key:
+
+```powershell
 php artisan key:generate
+```
 
-# Create SQLite database
-copy nul database\database.sqlite
+Konfigurasi bawaan proyek menggunakan SQLite dan Laravel Reverb pada port 8080. Nilai pentingnya berada di `.env`:
 
-# Run migrations
+```dotenv
+APP_URL=http://localhost:8000
+DB_CONNECTION=sqlite
+BROADCAST_CONNECTION=reverb
+REVERB_HOST=localhost
+REVERB_PORT=8080
+```
+
+### 5. Siapkan database SQLite
+
+Jika file database belum ada, buat file kosong berikut:
+
+```powershell
+New-Item -ItemType File -Path database\database.sqlite -Force
+```
+
+Jalankan migration:
+
+```powershell
 php artisan migrate
+```
 
-# Seed initial data
+Isi data awal berupa tiga layanan dan dua loket:
+
+```powershell
 php artisan db:seed --class=QueueSeeder
 ```
 
+Seeder ini mengosongkan data layanan dan loket lama sebelum membuat data awal. Gunakan hanya saat instalasi awal atau saat memang ingin membuat ulang data master tersebut.
+
 ## Menjalankan Aplikasi
 
-Buka **3 terminal terpisah**:
+Aplikasi membutuhkan server Laravel, Vite, dan Reverb. Jalankan masing-masing pada terminal terpisah.
 
-### Terminal 1 — Web Server
-```bash
-cd "d:\AI & Plugin Experiment\sistem_antrian_humas"
+### Terminal 1: Laravel web server
+
+```powershell
+cd "D:\Prototype System\sistemantrian_ugmservices"
 php artisan serve
 ```
-Akses: `http://localhost:8000`
 
-### Terminal 2 — Vite (Hot Reload untuk CSS/JS)
-```bash
-cd "d:\AI & Plugin Experiment\sistem_antrian_humas"
+Buka aplikasi di [http://localhost:8000](http://localhost:8000).
+
+### Terminal 2: Vite development server
+
+```powershell
+cd "D:\Prototype System\sistemantrian_ugmservices"
 npm run dev
 ```
 
-### Terminal 3 — WebSocket (Real-time)
-```bash
-cd "d:\AI & Plugin Experiment\sistem_antrian_humas"
+Vite menyediakan hot reload untuk CSS dan JavaScript. Biarkan terminal ini tetap berjalan selama pengembangan.
+
+### Terminal 3: Laravel Reverb
+
+```powershell
+cd "D:\Prototype System\sistemantrian_ugmservices"
 php artisan reverb:start --host=0.0.0.0 --port=8080
 ```
 
-## Akses Aplikasi
+Reverb diperlukan agar perubahan nomor antrian dapat diteruskan secara real-time ke dashboard operator dan TV display.
 
-| Halaman | URL | Deskripsi |
-|---------|-----|-----------|
-| Ambil Antrian | `http://localhost:8000` | Pengguna memilih layanan & mendapat nomor |
-| Operator Loket 1 | `http://localhost:8000/operator/1` | Dashboard petugas loket 1 |
-| Operator Loket 2 | `http://localhost:8000/operator/2` | Dashboard petugas loket 2 |
-| TV Display | `http://localhost:8000/tv` | Tampilan monitor/LED |
-| Admin Panel | `http://localhost:8000/admin` | Reset sistem, statistik, download rekap harian |
+Untuk menjalankan aplikasi tanpa hot reload, buat asset production terlebih dahulu:
 
-## Alur Kerja
+```powershell
+npm run build
+```
 
-1. **Pengunjung** datang dan memilih layanan di halaman utama → mendapat nomor antrian (contoh: A001, B001)
-2. **Petugas** di loket manapun klik **"Panggil Berikutnya"** → nomor antrian paling lama menunggu dari layanan manapun akan dipanggil
-3. **TV Display** menampilkan nomor yang dipanggil beserta loket tujuannya
-4. **Petugas** klik **"Mulai Layanan"** → status berubah menjadi "Sedang Dilayani"
-5. **Petugas** klik **"Selesai"** → antrian selesai, siap memanggil nomor berikutnya
-6. **Semua loket** dapat memanggil nomor dari layanan **Pengaduan (A), Permohonan Informasi (B), Konsultasi (C)** manapun
-7. **Admin** dapat mendownload rekap harian dalam format CSV (dapat dibuka di Excel) dari panel admin
+Setelah itu cukup jalankan web server dan Reverb sesuai kebutuhan.
 
-## Struktur Database
+## Halaman Aplikasi
 
-- **services** — Jenis layanan (Pengaduan, Permohonan Informasi, Konsultasi)
-- **counters** — Loket/petugas (universal — semua loket melayani semua layanan)
-- **queues** — Data antrian (nomor, status, waktu, layanan, loket)
-- **queue_logs** — Riwayat aksi pada antrian
+| Halaman | URL | Kegunaan |
+| --- | --- | --- |
+| Ambil Antrian | `http://localhost:8000/` | Pengunjung memilih layanan dan mengambil nomor |
+| Operator Loket 1 | `http://localhost:8000/operator/1` | Mengelola antrian di Loket 1 |
+| Operator Loket 2 | `http://localhost:8000/operator/2` | Mengelola antrian di Loket 2 |
+| TV Display | `http://localhost:8000/tv` | Menampilkan panggilan untuk ruang tunggu |
+| Admin | `http://localhost:8000/admin` | Monitoring, reset, dan rekap harian |
+
+## Alur Operasional
+
+1. Pengunjung membuka halaman utama dan memilih Pengaduan, Permohonan Informasi, atau Konsultasi.
+2. Sistem membuat nomor berikutnya berdasarkan prefix layanan, misalnya `A001`, `B001`, atau `C001`.
+3. Operator membuka URL loketnya lalu menekan **Panggil Berikutnya**.
+4. Sistem memilih antrian berstatus `waiting` yang paling lama dari semua layanan.
+5. Nomor dan loket tujuan tampil pada dashboard operator dan TV display.
+6. Operator menekan **Mulai Layanan** ketika pengunjung sudah dilayani.
+7. Operator menekan **Selesai** setelah layanan selesai, atau **Lewati** jika nomor tidak datang.
+8. Admin dapat melihat aktivitas dan mengunduh rekap berdasarkan tanggal.
 
 ## Status Antrian
 
-| Status | Deskripsi |
-|--------|-----------|
+| Status | Arti |
+| --- | --- |
 | `waiting` | Menunggu dipanggil |
-| `called` | Sudah dipanggil, menunggu dilayani |
-| `serving` | Sedang dilayani petugas |
-| `completed` | Selesai dilayani |
-| `skipped` | Dilewati (tidak datang) |
+| `called` | Sudah dipanggil dan menunggu dilayani |
+| `serving` | Sedang dilayani |
+| `completed` | Layanan selesai |
+| `skipped` | Nomor dilewati karena pengunjung tidak datang |
 
-## Teknologi
+## Struktur Data
 
-| Teknologi | Versi | Kegunaan |
-|-----------|-------|----------|
-| Laravel | 11 | Framework PHP |
-| Livewire | 3 | Komponen interaktif |
-| Volt | 1 | API Laravel Reverb |
-| Laravel Reverb | 1 | WebSocket server |
-| Tailwind CSS | 3 | Styling |
-| Alpine.js | 3 | Interaktivitas frontend |
-| SQLite | - | Database |
-| Vite | 5 | Build tool |
+- `services`: master jenis layanan, prefix, dan nomor terakhir.
+- `counters`: daftar loket yang dapat melayani semua layanan.
+- `queues`: nomor antrian, layanan, status, waktu proses, dan loket.
+- `queue_logs`: catatan aktivitas seperti panggil, mulai layanan, selesai, dan lewati.
 
-## Color Scheme
+Migration database berada di `database/migrations`, sedangkan data awal berada di `database/seeders/QueueSeeder.php`.
 
-| Token | HEX | Penggunaan |
-|-------|-----|------------|
-| Primary | `#0B457F` | Tombol utama, Header |
-| Primary Hover | `#083764` | Hover Button |
-| Primary Light | `#EAF2FB` | Background Card |
-| Secondary | `#FFD42B` | Accent, Highlight |
-| Secondary Hover | `#F4C400` | Hover Accent |
-| Success | `#16A34A` | Status berhasil |
-| Warning | `#F59E0B` | Peringatan |
-| Danger | `#DC2626` | Tombol reset, peringatan bahaya |
-| Info | `#0284C7` | Informasi |
-| Background | `#F8FAFC` | Halaman |
-| Surface | `#FFFFFF` | Card |
-| Border | `#E5E7EB` | Garis |
-| Text Primary | `#1F2937` | Judul |
-| Text Secondary | `#6B7280` | Deskripsi |
+## Rekap CSV
+
+Admin dapat mengunduh rekap dari halaman `/admin`. Endpoint download menggunakan format:
+
+```text
+/admin/download/{tanggal}
+```
+
+Contoh:
+
+```text
+http://localhost:8000/admin/download/2026-08-19
+```
+
+File CSV berisi:
+
+- daftar nomor antrian pada tanggal tersebut;
+- layanan, loket, status, dan waktu setiap tahap; dan
+- log aktivitas antrian.
+
+File menggunakan BOM UTF-8 agar dapat dibuka dengan baik di Microsoft Excel.
 
 ## Kustomisasi Tampilan
 
-### Background Image
+### Background
 
-Letakkan file gambar di `public/images/background.png`. Opacity overlay dapat diatur di `resources/views/layouts/app.blade.php`:
+Letakkan gambar background di:
 
-```blade
-{{-- Ubah bg-white/70 untuk mengatur opacity overlay (70% putih) --}}
-<div class="fixed inset-0 bg-cover bg-center" style="background-image: url('/images/background.png')">
-    <div class="absolute inset-0 bg-white/70"></div>
-</div>
+```text
+public/images/background.png
 ```
 
-### Logo UGM
+Overlay dan opacity diatur pada `resources/views/layouts/app.blade.php`.
 
-Logo UGM putih disimpan di `public/images/logo_ugm_putih.png`. Untuk mengganti, cukup replace file tersebut.
+### Logo
 
-### Tombol Layanan
+Logo header dapat diganti dengan file:
 
-Tombol layanan di halaman ambil antrian menggunakan ukuran besar (p-8, min-h-[180px]) dengan ikon prefix persegi. Ukuran container dapat diubah di `resources/views/livewire/queue-registration.blade.php`.
+```text
+public/images/logo_ugm_putih.png
+```
 
-## Download Rekap Harian (CSV)
+### Styling
 
-Admin dapat mendownload rekap harian dari panel admin (`/admin`). File CSV mencakup:
+Style utama berada di `resources/css/app.css`. View Livewire berada di:
 
-- **Data Antrian**: Nomor antrian, layanan, status, waktu, loket
-- **Riwayat Aktivitas**: Log aksi (ambil, panggil, layani, selesai, skip) dengan timestamp
+```text
+resources/views/livewire
+```
 
-CSV menggunakan BOM (Byte Order Mark) sehingga kompatibel dengan Microsoft Excel dan dapat menampilkan huruf Indonesia (seperti é, ü) dengan benar.
+Setelah mengubah CSS atau JavaScript, biarkan `npm run dev` berjalan atau jalankan `npm run build` untuk asset production.
+
+## Perintah Pemeliharaan
+
+```powershell
+# Membersihkan cache konfigurasi, route, dan view
+php artisan optimize:clear
+
+# Melihat daftar route
+php artisan route:list
+
+# Menjalankan ulang migration dari awal - menghapus seluruh data database
+php artisan migrate:fresh
+
+# Menjalankan ulang migration dan data master
+php artisan migrate:fresh --seed --seeder=QueueSeeder
+```
+
+Perintah `migrate:fresh` bersifat destruktif. Jangan menjalankannya pada database yang berisi data operasional penting.
+
+## Troubleshooting
+
+### `php` tidak dikenali
+
+Pastikan folder yang berisi `php.exe` sudah masuk `Path`, lalu buka terminal baru. Untuk instalasi Laragon, lokasi umumnya adalah:
+
+```text
+C:\laragon\bin\php\<versi-php>
+```
+
+Verifikasi dengan:
+
+```powershell
+Get-Command php
+php -v
+```
+
+### `composer` tidak dikenali
+
+Tambahkan folder Composer ke `Path`, atau gunakan terminal Laragon. Verifikasi dengan:
+
+```powershell
+Get-Command composer
+composer --version
+```
+
+### `vendor/autoload.php` tidak ditemukan
+
+Jalankan dari folder proyek:
+
+```powershell
+composer install
+```
+
+### Database SQLite gagal dibuka
+
+Pastikan file berikut ada dan dapat ditulis:
+
+```text
+database/database.sqlite
+```
+
+Setelah itu jalankan:
+
+```powershell
+php artisan migrate
+```
+
+### Perubahan real-time tidak muncul
+
+Pastikan tiga hal berikut berjalan:
+
+1. `php artisan serve` pada port 8000;
+2. `npm run dev`; dan
+3. `php artisan reverb:start --host=0.0.0.0 --port=8080`.
+
+Periksa juga nilai `REVERB_HOST`, `REVERB_PORT`, dan variabel `VITE_REVERB_*` pada `.env`.
+
+## Teknologi
+
+| Teknologi | Kegunaan |
+| --- | --- |
+| Laravel 11 | Framework aplikasi PHP |
+| Livewire 3 | Komponen antarmuka interaktif |
+| Laravel Reverb 1 | WebSocket real-time |
+| Tailwind CSS 3 | Styling antarmuka |
+| Alpine.js 3 | Interaktivitas sisi browser |
+| SQLite | Database lokal |
+| Vite 5 | Build dan hot reload asset |
 
 ## Lisensi
 
-Hak Cipta © 2025 UGM University Service — Sistem Antrian Layanan
+Hak Cipta (C) 2025 UGM University Service - Sistem Antrian Layanan.
