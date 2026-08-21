@@ -6,6 +6,30 @@
             <p class="text-sm text-text-secondary">Melayani Semua Layanan</p>
         </div>
         <div class="flex items-center gap-2">
+            <button
+                type="button"
+                wire:click="toggleAnnouncementVoice"
+                class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium border transition-colors
+                    {{ $announcementVoice ? 'bg-success/10 text-success border-success/40' : 'bg-surface text-text-secondary border-border' }}"
+            >
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+                </svg>
+                <span>Suara Panggilan: {{ $announcementVoice ? 'Aktif' : 'Nonaktif' }}</span>
+            </button>
+
+            <button
+                type="button"
+                wire:click="toggleVideoSound"
+                class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium border transition-colors
+                    {{ $videoSound ? 'bg-success/10 text-success border-success/40' : 'bg-surface text-text-secondary border-border' }}"
+            >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                </svg>
+                <span>Suara Video: {{ $videoSound ? 'Aktif' : 'Nonaktif' }}</span>
+            </button>
+
             <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm
                 {{ count($waitingQueues) > 0 ? 'bg-warning/10 text-warning' : 'bg-success/10 text-success' }}">
                 <span class="w-2 h-2 rounded-full {{ count($waitingQueues) > 0 ? 'bg-warning' : 'bg-success' }}"></span>
@@ -129,3 +153,15 @@
         @endif
     </div>
 </div>
+
+@script
+<script>
+    const opAv = localStorage.getItem('op-announcement-voice');
+    const opVs = localStorage.getItem('op-video-sound');
+    if (opAv !== null) $wire.set('announcementVoice', opAv === '1');
+    if (opVs !== null) $wire.set('videoSound', opVs === '1');
+
+    $wire.$watch('announcementVoice', (v) => localStorage.setItem('op-announcement-voice', v ? '1' : '0'));
+    $wire.$watch('videoSound', (v) => localStorage.setItem('op-video-sound', v ? '1' : '0'));
+</script>
+@endscript

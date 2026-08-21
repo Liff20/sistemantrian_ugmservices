@@ -40,7 +40,7 @@ Route::get('/admin/download/{date}', function (string $date) {
         // === Rekap Antrian ===
         fputcsv($handle, ['REKAP ANTRIAN - ' . $date]);
         fputcsv($handle, []);
-        fputcsv($handle, ['No', 'Nomor Antrian', 'Layanan', 'Loket', 'Status', 'Waktu Ambil', 'Waktu Dipanggil', 'Waktu Dilayani', 'Waktu Selesai']);
+        fputcsv($handle, ['No', 'Nomor Antrian', 'Layanan', 'Loket', 'Email', 'WhatsApp', 'Status', 'Waktu Ambil', 'Waktu Dipanggil', 'Waktu Dilayani', 'Waktu Selesai']);
 
         foreach ($queues as $i => $q) {
             fputcsv($handle, [
@@ -48,6 +48,8 @@ Route::get('/admin/download/{date}', function (string $date) {
                 $q->queue_number,
                 $q->service?->name ?? '-',
                 $q->counter?->name ?? '-',
+                $q->email ?? '-',
+                $q->whatsapp ?? '-',
                 match($q->status) {
                     'waiting' => 'Menunggu',
                     'called' => 'Dipanggil',

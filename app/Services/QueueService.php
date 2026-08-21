@@ -18,10 +18,10 @@ class QueueService
             ->toArray();
     }
 
-    public function takeQueue(int $serviceId): Queue
+    public function takeQueue(int $serviceId, array $contact = []): Queue
     {
         $service = Service::findOrFail($serviceId);
-        return Queue::createForService($service);
+        return Queue::createForService($service, $contact);
     }
 
     public function getAllWaitingQueues()

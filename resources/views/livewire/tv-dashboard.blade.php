@@ -66,64 +66,60 @@
             <!-- Video Player (auto-play, loop, multiple videos) -->
             <div class="mt-4 bg-transparent rounded-2xl overflow-hidden flex-1 min-h-0 relative"
                  x-data="{
-                    videos: [
-                        'video_ (1).mp4',
-                        'video_ (2).mp4',
-                        'video_ (3).mp4',
-                        'video_ (4).mp4'
-                    ],
+                    videos: {{ json_encode($videos) }},
                     currentIndex: 0,
                     soundEnabled: false,
-                    isMuted: true,
                     videoEl: null,
                     init() {
                         this.videoEl = this.$el.querySelector('video');
-                        let basePath = '/videos/';
+                        if (!this.videos.length) {
+                            this.soundEnabled = true;
+                            return;
+                        }
                         this.videoEl.addEventListener('ended', () => {
                             this.currentIndex = (this.currentIndex + 1) % this.videos.length;
-                            this.videoEl.src = basePath + encodeURIComponent(this.videos[this.currentIndex]);
+                            this.videoEl.src = '/' + this.videos[this.currentIndex];
                             this.videoEl.play();
                         });
-                        // Try to autoplay with sound; if blocked, show the enable-sound overlay
-                        this.videoEl.play().then(() => {
-                            this.soundEnabled = true;
-                        }).catch(() => {
-                            this.soundEnabled = false;
-                        });
+                        this.videoEl.play().catch(() => {});
+                        this.soundEnabled = false;
                     },
                     enableSound() {
-                        this.videoEl.muted = false;
-                        this.videoEl.volume = 1.0;
-                        this.videoEl.play();
                         this.soundEnabled = true;
-                        this.isMuted = false;
+                        if (window.unlockAudio) {
+                            window.unlockAudio();
+                        }
                     },
                     nextVideo() {
+                        if (!this.videos.length) return;
                         this.currentIndex = (this.currentIndex + 1) % this.videos.length;
-                        this.videoEl.src = '/videos/' + encodeURIComponent(this.videos[this.currentIndex]);
+                        this.videoEl.src = '/' + this.videos[this.currentIndex];
                         this.videoEl.play();
                     },
                     prevVideo() {
+                        if (!this.videos.length) return;
                         this.currentIndex = (this.currentIndex - 1 + this.videos.length) % this.videos.length;
-                        this.videoEl.src = '/videos/' + encodeURIComponent(this.videos[this.currentIndex]);
+                        this.videoEl.src = '/' + this.videos[this.currentIndex];
                         this.videoEl.play();
-                    },
-                    toggleMute() {
-                        this.videoEl.muted = !this.videoEl.muted;
-                        this.isMuted = this.videoEl.muted;
-                        if (!this.videoEl.muted) {
-                            this.videoEl.volume = 1.0;
-                            this.soundEnabled = true;
-                        }
                     }
                  }">
-                <video class="w-full h-full object-contain bg-transparent" autoplay muted playsinline
-                       :src="'/videos/' + encodeURIComponent(videos[currentIndex])">
-                    Browser tidak mendukung video.
-                </video>
+                @if(count($videos) > 0)
+                    <video class="w-full h-full object-contain bg-transparent" autoplay muted playsinline
+                           :src="'/' + videos[currentIndex]">
+                        Browser tidak mendukung video.
+                    </video>
+                @else
+                    <div class="w-full h-full flex flex-col items-center justify-center text-center">
+                        <svg class="w-20 h-20 text-white/40 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                        <p class="text-2xl text-white/50">Belum ada video</p>
+                        <p class="text-lg text-white/30 mt-1">Letakkan file video di folder <code class="text-blue-200">public/videos</code></p>
+                    </div>
+                @endif
 
                 <!-- Previous button (left side) -->
-                <button @click="prevVideo()"
+                <button x-show="videos.length" @click="prevVideo()"
                         class="absolute left-3 top-1/2 -translate-y-1/2 w-14 h-14 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center transition z-20">
                     <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
@@ -131,25 +127,14 @@
                 </button>
 
                 <!-- Next button (right side) -->
-                <button @click="nextVideo()"
+                <button x-show="videos.length" @click="nextVideo()"
                         class="absolute right-3 top-1/2 -translate-y-1/2 w-14 h-14 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center transition z-20">
                     <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M8.59 16.59 10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
                     </svg>
                 </button>
 
-                <!-- Mute/Unmute button (bottom right) -->
-                <button @click="toggleMute()"
-                        class="absolute bottom-3 right-3 w-12 h-12 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center transition z-20">
-                    <svg x-show="isMuted" class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3 3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4 9.91 6.09 12 8.18V4z"/>
-                    </svg>
-                    <svg x-show="!isMuted" class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
-                    </svg>
-                </button>
-
-                <!-- Enable sound overlay (shown only when autoplay with sound is blocked) -->
+                <!-- Enable sound overlay (shown until user unlocks audio once) -->
                 <div x-show="!soundEnabled"
                      x-transition.opacity
                      class="absolute inset-0 flex items-center justify-center bg-black/50 cursor-pointer z-10"
@@ -211,3 +196,87 @@
     <!-- Auto-refresh polling -->
     <div wire:poll.2s="refreshDisplay"></div>
 </div>
+
+@script
+<script>
+    let announcementVoice = localStorage.getItem('tv-announcement-voice') !== '0';
+    let videoSound = localStorage.getItem('tv-video-sound') !== '0';
+    let audioUnlocked = false;
+    let cachedVoice = null;
+
+    const pickIndonesianVoice = () => {
+        if (!('speechSynthesis' in window)) return null;
+        if (cachedVoice) return cachedVoice;
+        const voices = window.speechSynthesis.getVoices();
+        const idVoices = voices.filter(v =>
+            (v.lang || '').toLowerCase().replace('_', '-').startsWith('id')
+        );
+        if (!idVoices.length) return null;
+        // Prefer a female Indonesian voice when available.
+        const female = idVoices.find(v =>
+            /gadis|damayanti|google|wanita|female|indah|pertiwi|andika/i.test(v.name || '')
+        );
+        cachedVoice = female || idVoices[0];
+        return cachedVoice;
+    };
+
+    // Warm up the voice list as soon as the browser provides it.
+    if ('speechSynthesis' in window) {
+        pickIndonesianVoice();
+        window.speechSynthesis.addEventListener('voiceschanged', () => {
+            cachedVoice = null;
+            pickIndonesianVoice();
+        });
+    }
+
+    const applyVideoSound = () => {
+        const video = document.querySelector('video');
+        if (!video) return;
+        video.muted = !(audioUnlocked && videoSound);
+    };
+
+    window.unlockAudio = () => {
+        audioUnlocked = true;
+        applyVideoSound();
+    };
+
+    const speakQueue = (queueNumber, counterName) => {
+        if (!audioUnlocked || !announcementVoice) return;
+        if (!('speechSynthesis' in window)) return;
+
+        const numberSpelled = String(queueNumber).replace(/(.)/g, '$1 ').trim();
+        const text = 'Nomor antrian ' + numberSpelled + ', silakan menuju ' + counterName;
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'id-ID';
+        utterance.rate = 0.95;
+
+        const voice = pickIndonesianVoice();
+        if (voice) {
+            utterance.voice = voice;
+            utterance.pitch = 1.05;
+        } else {
+            utterance.pitch = 1.2;
+        }
+
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(utterance);
+    };
+
+    $wire.$watch('announcementVoice', (v) => {
+        announcementVoice = !!v;
+        localStorage.setItem('tv-announcement-voice', v ? '1' : '0');
+    });
+
+    $wire.$watch('videoSound', (v) => {
+        videoSound = !!v;
+        localStorage.setItem('tv-video-sound', v ? '1' : '0');
+        applyVideoSound();
+    });
+
+    $wire.$watch('announcement', (announcement) => {
+        if (!announcement || !announcement.queueNumber) return;
+        speakQueue(announcement.queueNumber, announcement.counterName);
+    });
+</script>
+@endscript

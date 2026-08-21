@@ -11,11 +11,11 @@
     </div>
 
     <!-- Service Selection -->
-    @if(!$lastQueue)
+    @if(!$lastQueue && !$pendingServiceId)
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
             @foreach($services as $service)
                 <button
-                    wire:click="takeQueue({{ $service['id'] }})"
+                    wire:click="showContactForm({{ $service['id'] }})"
                     wire:loading.attr="disabled"
                     class="relative group p-8 bg-surface border-2 border-border rounded-2xl
                            hover:border-primary hover:shadow-xl hover:bg-primary-light/30 transition-all duration-200
@@ -51,6 +51,72 @@
                     @endif
                 </button>
             @endforeach
+        </div>
+    @endif
+
+    <!-- Contact Form (email + WhatsApp) before issuing number -->
+    @if(!$lastQueue && $pendingServiceId)
+        @php($pendingService = \App\Models\Service::find($pendingServiceId))
+        <div class="max-w-lg mx-auto">
+            <div class="bg-surface border-2 border-primary rounded-2xl p-8 shadow-xl">
+                <div class="text-center mb-6">
+                    <h3 class="text-xl font-bold text-text-primary">Lengkapi Data Anda</h3>
+                    <p class="text-text-secondary mt-1 text-sm">
+                        Layanan: <span class="font-semibold text-primary">{{ $pendingService?->name ?? '-' }}</span>
+                    </p>
+                    <p class="text-text-secondary mt-1 text-xs">
+                        Email dan nomor WhatsApp Anda digunakan untuk mengirim Survei Kepuasan Masyarakat (SKM).
+                    </p>
+                </div>
+
+                <form wire:submit="takeQueue({{ $pendingServiceId }})" class="space-y-4">
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-text-primary mb-1">Email</label>
+                        <input
+                            type="email"
+                            id="email"
+                            wire:model="email"
+                            placeholder="contoh@email.com"
+                            class="w-full px-4 py-2.5 bg-white border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
+                        >
+                        @error('email')
+                            <p class="text-sm text-danger mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label for="whatsapp" class="block text-sm font-medium text-text-primary mb-1">Nomor WhatsApp</label>
+                        <input
+                            type="tel"
+                            id="whatsapp"
+                            wire:model="whatsapp"
+                            inputmode="numeric"
+                            placeholder="08xxxxxxxxxx"
+                            class="w-full px-4 py-2.5 bg-white border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
+                        >
+                        @error('whatsapp')
+                            <p class="text-sm text-danger mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div class="flex gap-3 pt-2">
+                        <button
+                            type="button"
+                            wire:click="cancelContactForm"
+                            class="flex-1 px-4 py-3 border-2 border-border rounded-lg text-text-secondary hover:bg-surface-hover transition-colors font-medium"
+                        >
+                            Batal
+                        </button>
+                        <button
+                            type="submit"
+                            wire:loading.attr="disabled"
+                            class="flex-1 px-4 py-3 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors font-medium disabled:opacity-50"
+                        >
+                            Ambil Nomor Antrian
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     @endif
 

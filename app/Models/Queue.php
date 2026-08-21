@@ -13,6 +13,8 @@ class Queue extends Model
         'service_id',
         'counter_id',
         'status',
+        'email',
+        'whatsapp',
         'called_at',
         'served_at',
         'completed_at',
@@ -39,7 +41,7 @@ class Queue extends Model
         return $this->belongsTo(Counter::class);
     }
 
-    public static function createForService(Service $service): self
+    public static function createForService(Service $service, array $contact = []): self
     {
         $number = $service->generateQueueNumber();
 
@@ -47,6 +49,8 @@ class Queue extends Model
             'queue_number' => $number,
             'service_id' => $service->id,
             'status' => 'waiting',
+            'email' => $contact['email'] ?? null,
+            'whatsapp' => $contact['whatsapp'] ?? null,
         ]);
     }
 

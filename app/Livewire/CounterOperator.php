@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Events\VoiceSettingsChanged;
 use App\Models\Counter;
 use App\Models\Queue;
 use App\Services\QueueService;
@@ -14,6 +15,8 @@ class CounterOperator extends Component
     public Counter $counter;
     public ?Queue $currentQueue = null;
     public Collection $waitingQueues;
+    public bool $announcementVoice = true;
+    public bool $videoSound = true;
 
     private QueueService $queueService;
 
@@ -37,7 +40,7 @@ class CounterOperator extends Component
 
     public function callNext(): void
     {
-        $queue = $this->queueService->callNext($this->counter->id);
+        $this->queueService->callNext($this->counter->id);
         $this->refreshData();
     }
 
@@ -47,6 +50,37 @@ class CounterOperator extends Component
             $this->currentQueue->call($this->counter);
             $this->refreshData();
         }
+    }
+
+    public function toggleAnnouncementVoice(): void
+    {
+        $this->announcementVoice = ! $this->announcementVoice;
+        $this->broadcastVoiceSettings();
+    }
+
+    public function toggleVideoSound(): void
+    {
+        $this->videoSound = ! $this->videoSound;
+        $this->broadcastVoiceSettings();
+    }
+
+    private function broadcastVoiceSettings(): void
+    {
+        try {
+            broadcast(new VoiceSettingsChanged(
+                announcementVoice: $this->announcementVoice,
+                videoSound: $this->videoSound,
+            ));
+        } catch (\Throwable $e) {
+            // Reverb down: keep local toggle state; TV will sync on next event.
+        }
+    }
+
+    #[On('echo:queue,.voice.settings')]
+    public function onVoiceSettings(array $payload): void
+    {
+        $this->announcementVoice = (bool) ($payload['announcementVoice'] ?? true);
+        $this->videoSound = (bool) ($payload['videoSound'] ?? true);
     }
 
     public function startService(): void
