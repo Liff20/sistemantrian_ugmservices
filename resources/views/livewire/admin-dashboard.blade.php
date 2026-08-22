@@ -10,6 +10,20 @@
         <p class="text-text-secondary mt-2">Kelola dan monitor sistem antrian</p>
     </div>
 
+    <!-- Admin Sub-navigation -->
+    <div class="flex items-center justify-center gap-3 mb-8">
+        <a href="{{ route('queue.admin') }}"
+           class="px-5 py-2.5 rounded-lg font-medium text-sm border transition-colors
+                  bg-primary text-white border-primary">
+            Panel Admin
+        </a>
+        <a href="{{ route('queue.admin.rekap') }}"
+           class="px-5 py-2.5 rounded-lg font-medium text-sm border transition-colors
+                  bg-surface border-border text-text-secondary hover:border-primary hover:text-primary">
+            Rekap Antrian
+        </a>
+    </div>
+
     <!-- Stats Grid -->
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
         <div class="bg-surface border border-border rounded-xl p-4 text-center">

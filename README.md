@@ -7,12 +7,15 @@ Semua loket dapat melayani semua jenis layanan. Jenis layanan bawaan aplikasi ad
 ## Fitur
 
 - Pengunjung mengambil nomor antrian berdasarkan jenis layanan.
+- Sebelum nomor terbit, pengunjung wajib mengisi **email** dan **nomor WhatsApp** untuk keperluan pengiriman Survei Kepuasan Masyarakat (SKM).
 - Setiap jenis layanan memiliki prefix nomor sendiri: A, B, dan C.
 - Operator dapat memanggil, memulai layanan, menyelesaikan, atau melewati antrian.
 - Semua loket dapat memanggil antrian dari semua layanan.
 - TV display menampilkan nomor yang sedang dipanggil, loket, dan daftar antrian.
+- TV display memutar video iklan secara bergantian dari folder `public/videos`.
 - Pembaruan antarklien menggunakan Laravel Reverb WebSocket.
-- Browser dapat membacakan nomor antrian melalui notifikasi suara.
+- Browser dapat membacakan nomor antrian melalui notifikasi suara (Text-to-Speech, Bahasa Indonesia).
+- Operator dapat mengontrol suara panggilan antrian dan suara video TV dari halaman operator (tersinkron ke TV secara real-time).
 - Admin dapat memantau statistik, mereset data operasional, dan mengunduh rekap CSV.
 - Background halaman dan logo dapat dikustomisasi melalui folder `public/images`.
 
@@ -171,13 +174,14 @@ Setelah itu cukup jalankan web server dan Reverb sesuai kebutuhan.
 ## Alur Operasional
 
 1. Pengunjung membuka halaman utama dan memilih Pengaduan, Permohonan Informasi, atau Konsultasi.
-2. Sistem membuat nomor berikutnya berdasarkan prefix layanan, misalnya `A001`, `B001`, atau `C001`.
-3. Operator membuka URL loketnya lalu menekan **Panggil Berikutnya**.
-4. Sistem memilih antrian berstatus `waiting` yang paling lama dari semua layanan.
-5. Nomor dan loket tujuan tampil pada dashboard operator dan TV display.
-6. Operator menekan **Mulai Layanan** ketika pengunjung sudah dilayani.
-7. Operator menekan **Selesai** setelah layanan selesai, atau **Lewati** jika nomor tidak datang.
-8. Admin dapat melihat aktivitas dan mengunduh rekap berdasarkan tanggal.
+2. Pengunjung mengisi email dan nomor WhatsApp, lalu menekan **Ambil Nomor Antrian**.
+3. Sistem membuat nomor berikutnya berdasarkan prefix layanan, misalnya `A001`, `B001`, atau `C001`.
+4. Operator membuka URL loketnya lalu menekan **Panggil Berikutnya**.
+5. Sistem memilih antrian berstatus `waiting` yang paling lama dari semua layanan.
+6. Nomor dan loket tujuan tampil pada dashboard operator dan TV display, dan nomor dibacakan melalui suara (jika suara panggilan aktif).
+7. Operator menekan **Mulai Layanan** ketika pengunjung sudah dilayani.
+8. Operator menekan **Selesai** setelah layanan selesai, atau **Lewati** jika nomor tidak datang.
+9. Admin dapat melihat aktivitas dan mengunduh rekap berdasarkan tanggal.
 
 ## Status Antrian
 
@@ -193,7 +197,7 @@ Setelah itu cukup jalankan web server dan Reverb sesuai kebutuhan.
 
 - `services`: master jenis layanan, prefix, dan nomor terakhir.
 - `counters`: daftar loket yang dapat melayani semua layanan.
-- `queues`: nomor antrian, layanan, status, waktu proses, dan loket.
+- `queues`: nomor antrian, layanan, status, waktu proses, loket, serta email dan nomor WhatsApp pengunjung.
 - `queue_logs`: catatan aktivitas seperti panggil, mulai layanan, selesai, dan lewati.
 
 Migration database berada di `database/migrations`, sedangkan data awal berada di `database/seeders/QueueSeeder.php`.
@@ -215,7 +219,8 @@ http://localhost:8000/admin/download/2026-08-19
 File CSV berisi:
 
 - daftar nomor antrian pada tanggal tersebut;
-- layanan, loket, status, dan waktu setiap tahap; dan
+- layanan, loket, status, dan waktu setiap tahap;
+- email dan nomor WhatsApp pengunjung; dan
 - log aktivitas antrian.
 
 File menggunakan BOM UTF-8 agar dapat dibuka dengan baik di Microsoft Excel.
@@ -239,6 +244,25 @@ Logo header dapat diganti dengan file:
 ```text
 public/images/logo_ugm_putih.png
 ```
+
+### Video Iklan TV
+
+Letakkan file video (`.mp4`, `.webm`, atau `.ogg`) di folder:
+
+```text
+public/videos
+```
+
+Semua file video di folder tersebut akan diputar bergantian secara otomatis di TV display.
+
+### Suara Panggilan & Suara Video
+
+Kontrol suara berada di halaman **operator** (kanan atas):
+
+- **Suara Panggilan** — mengaktifkan/menonaktifkan pembacaan nomor antrian di TV.
+- **Suara Video** — mengaktifkan/menonaktifkan suara video iklan di TV.
+
+Kedua tombol tersedia di operator mana pun dan tersinkron secara real-time ke TV melalui Reverb. Suara panggilan menggunakan Text-to-Speech Bahasa Indonesia, dengan preferensi suara perempuan bila tersedia di perangkat TV. Pada layar TV, audio perlu diaktifkan sekali dengan menekan **"Klik untuk mengaktifkan suara"** (syarat autoplay browser).
 
 ### Styling
 
@@ -325,6 +349,15 @@ Pastikan tiga hal berikut berjalan:
 3. `php artisan reverb:start --host=0.0.0.0 --port=8080`.
 
 Periksa juga nilai `REVERB_HOST`, `REVERB_PORT`, dan variabel `VITE_REVERB_*` pada `.env`.
+
+### Suara panggilan atau kontrol suara tidak berfungsi
+
+Pastikan Laravel Reverb berjalan (poin 3 di atas), karena kontrol suara dan pembacaan nomor disinkronkan ke TV melalui Reverb. Jika tombol suara di operator tampak menyala tetapi TV tidak berbunyi:
+
+1. Pastikan `php artisan reverb:start --host=0.0.0.0 --port=8080` berjalan.
+2. Pastikan aset JavaScript sudah ter-build (`npm run build`) setelah `.env` diatur.
+3. Pada layar TV, klik **"Klik untuk mengaktifkan suara"** satu kali.
+4. Jika suara panggilan terdengar berbahasa Inggris/beraksen asing, pasang voice **Bahasa Indonesia** di perangkat TV (mis. Chrome/Edge Windows: Settings → Time & Language → Speech → Add voices → Bahasa Indonesia).
 
 ## Teknologi
 

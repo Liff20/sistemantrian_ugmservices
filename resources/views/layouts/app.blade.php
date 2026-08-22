@@ -32,9 +32,11 @@
                             <a href="{{ route('queue.registration') }}" class="text-blue-200 hover:text-white transition-colors {{ request()->routeIs('queue.registration') ? 'text-white font-semibold' : '' }}">
                                 Ambil Antrian
                             </a>
-                            <a href="{{ route('queue.admin') }}" class="text-blue-200 hover:text-white transition-colors {{ request()->routeIs('queue.admin') ? 'text-white font-semibold' : '' }}">
-                                Admin
-                            </a>
+                            @if(!request()->routeIs('queue.registration'))
+                                <a href="{{ route('queue.admin') }}" class="text-blue-200 hover:text-white transition-colors {{ request()->routeIs('queue.admin') ? 'text-white font-semibold' : '' }}">
+                                    Admin
+                                </a>
+                            @endif
                         </nav>
                         <div class="text-sm text-blue-200">
                             {{ now()->format('d F Y') }}
